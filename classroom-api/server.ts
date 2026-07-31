@@ -90,6 +90,7 @@ app.patch('/students/:id',authenticateToken,(req:Request, res:Response)=> {
     res.status(404).json({error:`NOT FOUND`})
   }
   else{
+    student.name = name
     res.status(200).json(student)
   }
 })
