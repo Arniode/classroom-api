@@ -2,6 +2,9 @@ import express, {type Express,type Request, type Response, type NextFunction } f
 import { Classroom } from './classroom';
 import { Student } from './student'
 import jwt from 'jsonwebtoken';
+import {connectDB  } from "./Db";
+import { studentModel } from './Mongoose-pratice';
+await connectDB();
 
 const app: Express = express();
 const PORT = 3000;
