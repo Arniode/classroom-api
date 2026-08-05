@@ -33,7 +33,7 @@ app.get('/students', async (req: Request, res:Response ) => {
   res.status(200).json(students)
 })
 
-app.post('/login', (req: Request, res:Response ) => {
+app.post('/login',async (req: Request, res:Response ) => {
   const {id} = req.body
   if(!id) {
     res.status(400).json({error: "ID required"})
@@ -68,10 +68,10 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-app.get('/students/:id', authenticateToken, async (req: Request, res: Response) => {
+app.get('/students/:id', authenticateToken, async  (req: Request, res: Response) => {
     const { id } = req.params;
 
-    const student = await StudentModel.findById(id);
+    const student = await StudentModel.findById(id).select("-__v");
 
     if (!student) {
         res.status(404).json({ error: "Student not found" });
@@ -115,3 +115,4 @@ app.delete('/students/:id', authenticateToken, async (req: Request, res: Respons
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
