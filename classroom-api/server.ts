@@ -19,13 +19,18 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.post('/students',async (req: Request, res: Response) => {
-  const {name} = req.body;
-  if (!name) {
-    res.status(400).json({error: "No name"});
-   return;
-}
-   const newStudent = await StudentModel.create({name})
-   res.status(200).json(newStudent) 
+  try{
+      const {name, password} = req.body;
+
+      if (!name||!password) {
+      res.status(400).json({error: "Name and password are required"});
+      return;
+    }   
+      const newStudent = await StudentModel.create({name, password})
+       res.status(201).json(newStudent) 
+    } catch (error) {
+     res.status(500).json({error: "Failed to create student"});
+    }
 });
 
 app.get('/students', async (req: Request, res:Response ) => {
@@ -34,22 +39,27 @@ app.get('/students', async (req: Request, res:Response ) => {
 })
 
 app.post('/login',async (req: Request, res:Response ) => {
-  const {id} = req.body
-  if(!id) {
-    res.status(400).json({error: "ID required"})
+  try{
+  const {id, password} = req.body
+  if(!id|| !password){ 
+    res.status(400).json({error: "ID and password required"})
     return;
   }
-  const students = myClassroom.getStudents();
-  const student = students.find((student) => student.id === Number(id));
+
+  const student = await StudentModel.findOne({_id:id, password:password});
 
   if (!student) {
-    res.status(404).json({ error: "Student not found" });
+    res.status(404).json({ error: "Invalid ID or password" });
     return;
   }
 
-  const token = jwt.sign({studentId: student.id},JWT_SECRET)
-  res.status(200).json({message:"Successfuly Logged in.", token:token})
-})
+  const token = jwt.sign({studentId: student._id},JWT_SECRET)
+  res.status(200).json({message:"Successfuly Logged in.", token:token});
+
+} catch (error: any) {
+    res.status(500).json({ error: "Invalid ID format or server error" });
+  }
+});
 
 function authenticateToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
@@ -81,6 +91,19 @@ app.get('/students/:id', authenticateToken, async  (req: Request, res: Response)
     res.status(200).json(student);
 });
 
+ app.get('/students/search', authenticateToken,async(req:Request, res: Response) => {
+ try{
+  const {name} = req.query;
+  if (!name) {
+    res.status(400).json({error:`Name query parameter is required`});
+    return;
+  }
+  const students = await StudentModel.find(
+    {name: name})
+  }catch (error){
+    res.status(500).json({error:error.message});
+  }
+ })
 
 app.patch('/students/:id', authenticateToken, async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -116,3 +139,4 @@ app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
+//so supervisor said that he can't write remark for everyday so I should get a generic standard remark that he can write  for everyday 

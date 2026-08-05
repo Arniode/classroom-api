@@ -7,7 +7,12 @@ const gradeSchema = new mongoose.Schema({
 
 const studentSchema = new mongoose.Schema({
     name: {type: String, required: true},
+    password: {type: String, required: true},
     grades:[gradeSchema]
+},
+{versionKey: false
 })
+
+
 
 export const StudentModel = mongoose.model('Student',studentSchema)
