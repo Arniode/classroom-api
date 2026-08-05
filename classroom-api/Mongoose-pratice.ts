@@ -10,4 +10,4 @@ const studentSchema = new mongoose.Schema({
     grades:[gradeSchema]
 })
 
-export const studentModel = mongoose.model('Student',studentSchema)
+export const StudentModel = mongoose.model('Student',studentSchema)

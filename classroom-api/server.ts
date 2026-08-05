@@ -3,7 +3,7 @@ import { Classroom } from './classroom';
 import { Student } from './student'
 import jwt from 'jsonwebtoken';
 import {connectDB  } from "./Db";
-import { studentModel } from './Mongoose-pratice';
+import { StudentModel } from './Mongoose-pratice';
 await connectDB();
 
 const app: Express = express();
@@ -18,19 +18,18 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello, World');
 });
 
-app.post('/students', (req: Request, res: Response) => {
+app.post('/students',async (req: Request, res: Response) => {
   const {name} = req.body;
   if (!name) {
     res.status(400).json({error: "No name"});
    return;
 }
-   const newStudent = new Student(name)
-   myClassroom.addStudent(newStudent)
+   const newStudent = await StudentModel.create({name})
    res.status(200).json(newStudent) 
 });
 
-app.get('/students', (req: Request, res:Response ) => {
-  const students = myClassroom.getStudents()
+app.get('/students', async (req: Request, res:Response ) => {
+  const students =  await StudentModel.find();
   res.status(200).json(students)
 })
 
@@ -69,34 +68,49 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-app.get('/students/:id', authenticateToken,(req:Request, res:Response)=>{
-  const {id}= req.params;
-  const students = myClassroom.getStudents();
-  const student = students.find((student)=> student.id === Number(id));
+app.get('/students/:id', authenticateToken, async (req: Request, res: Response) => {
+    const { id } = req.params;
 
-    if(!students) {
-      res.status(400).json({error:`Student doesn't exist!`})
-      return;
+    const student = await StudentModel.findById(id);
+
+    if (!student) {
+        res.status(404).json({ error: "Student not found" });
+        return;
     }
-    else{
-      res.status(200).json(student)
+
+    res.status(200).json(student);
+});
+
+
+app.patch('/students/:id', authenticateToken, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    const student = await StudentModel.findByIdAndUpdate(id,
+        { name },
+        { new: true }
+    );
+
+    if (!student) {
+        res.status(404).json({ error: "Student not found" });
+        return;
     }
-})
 
-app.patch('/students/:id',authenticateToken,(req:Request, res:Response)=> {
-  const {id} = req.params;
-  const {name} = req.body
-  const students = myClassroom.getStudents()
-  const student = students.find((student)=> student.id === Number(id))
+    res.status(200).json(student);
+});
 
-  if(!student) { 
-    res.status(404).json({error:`NOT FOUND`})
-  }
-  else{
-    student.name = name
-    res.status(200).json(student)
-  }
-})
+app.delete('/students/:id', authenticateToken, async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const student = await StudentModel.findByIdAndDelete(id);
+
+    if (!student) {
+        res.status(404).json({ error: "Student not found" });
+        return;
+    }
+
+    res.status(200).json({ message: "Student deleted successfully" });
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
