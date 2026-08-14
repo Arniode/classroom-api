@@ -162,7 +162,7 @@ app.patch('/students/:id', authenticateToken, async (req: Request, res: Response
         const student = await StudentModel.findByIdAndUpdate(
             id,
             { name },
-            { new: true }
+            { returnDocument: 'after' }
         ).select("-password");
 
         if (!student) {
