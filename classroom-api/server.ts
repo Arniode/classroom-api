@@ -3,8 +3,8 @@ import redisClient, { connectRedis} from './cache';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import {connectDB  } from "./Db";
-import { StudentModel } from './Mongoose-pratice';
-connectDB();
+import { StudentModel } from './Mongoose-practice';
+await connectDB();
 await connectRedis();
 
 
@@ -17,6 +17,24 @@ app.use(express.json());
 app.get('/', (req: Request, res: Response) => {
     res.send('Hello, World');
 });
+
+// MIDDLEWARE
+function authenticateToken(req: Request, res: Response, next: NextFunction) {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+        return res.status(401).json({ error: "Unauthorized: No token provided" });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    try {
+        jwt.verify(token, JWT_SECRET);
+        next();
+    } catch (error) {
+        return res.status(403).json({ error: "Invalid token" });
+    }
+}
 
 // CREATE STUDENT
 app.post('/students', async (req: Request, res: Response) => {
@@ -31,6 +49,9 @@ app.post('/students', async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const newStudent = await StudentModel.create({ name, password: hashedPassword });
         const { password: _, ...studentWithoutPassword } = newStudent.toObject();
+
+        await redisClient.del('students');
+
         res.status(201).json(studentWithoutPassword);
 
     } catch (error) {
@@ -38,7 +59,7 @@ app.post('/students', async (req: Request, res: Response) => {
     }
 });
 
-// GET ALL STUDENTS 
+// GET ALL STUDENTS
 app.get('/students', async (req: Request, res: Response) => {
     try {
         const cached = await redisClient.get('students');
@@ -49,7 +70,7 @@ app.get('/students', async (req: Request, res: Response) => {
             return;
         }
 
-        const students = await StudentModel.find().select("-__v -password");
+        const students = await StudentModel.find().select("-password");
 
         await redisClient.setEx('students', 60, JSON.stringify(students));
 
@@ -73,7 +94,7 @@ app.get('/students/search', authenticateToken, async (req: Request, res: Respons
 
         const students = await StudentModel.find({
             name: { $regex: String(name), $options: 'i' }
-        });
+        }).select("-password");
 
         res.status(200).json(students);
 
@@ -82,7 +103,7 @@ app.get('/students/search', authenticateToken, async (req: Request, res: Respons
     }
 });
 
-//  GET ONE STUDENT BY ID 
+//  GET ONE STUDENT BY ID
 app.get('/students/:id', authenticateToken, async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
@@ -132,7 +153,7 @@ app.post('/login', async (req: Request, res: Response) => {
     }
 });
 
-// UPDATE STUDENT 
+// UPDATE STUDENT
 app.patch('/students/:id', authenticateToken, async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
@@ -148,6 +169,8 @@ app.patch('/students/:id', authenticateToken, async (req: Request, res: Response
             res.status(404).json({ error: "Student not found" });
             return;
         }
+
+        await redisClient.del('students');
 
         res.status(200).json(student);
 
@@ -175,24 +198,6 @@ app.delete('/students/:id', authenticateToken, async (req: Request, res: Respons
         res.status(500).json({ error: "Failed to delete student" });
     }
 });
-
-// MIDDLEWARE 
-function authenticateToken(req: Request, res: Response, next: NextFunction) {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader) {
-        return res.status(401).json({ error: "Unauthorized: No token provided" });
-    }
-
-    const token = authHeader.split(' ')[1];
-
-    try {
-        jwt.verify(token, JWT_SECRET);
-        next();
-    } catch (error) {
-        return res.status(403).json({ error: "Invalid token" });
-    }
-}
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

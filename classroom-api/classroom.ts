@@ -28,10 +28,10 @@ export class Classroom {
         }
     }
 
-   removeStudent(removeStudent: Student[]): void {
-         this.students= this.students.filter(student => removeStudent!== removeStudent )
-    
-}
+   removeStudents(studentsToRemove: Student[]): void {
+        const idsToRemove = new Set(studentsToRemove.map(s => s.id));
+        this.students = this.students.filter(student => !idsToRemove.has(student.id));
+    }
     getPassingStudents(passingGrade: number): Student[] {
         return this.students.filter((student: Student) => {
             const average = student.getAverageGrade();

@@ -31,8 +31,8 @@ export class Student {
         }
     }
 
-    removeGrade(removeGrade: number): void {
-        this.grades = this.grades.filter(grade => grade.value !== removeGrade);
+    removeGrade(subject: Subject): void {
+        this.grades = this.grades.filter(grade => grade.subject.name !== subject.name);
     }
 
     getAverageGrade(): number {

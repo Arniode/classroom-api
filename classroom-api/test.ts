@@ -49,8 +49,8 @@ let lastId = 0;
         }
     }
 
-    removeGrade(removeGrade:number): void {
-      this.grades = this.grades.filter(grade => grade.value !== removeGrade); 
+    removeGrade(subject: Subject): void {
+        this.grades = this.grades.filter(grade => grade.subject.name !== subject.name);
     }
 
     getAverageGrade(): number {
@@ -110,8 +110,9 @@ class Classroom {
         }
     }
 
-    removeStudent(removeStudent: Student[]): void{ 
-        this.students= this.students.filter(student => removeStudent!== removeStudent )
+    removeStudents(studentsToRemove: Student[]): void {
+        const idsToRemove = new Set(studentsToRemove.map(s => s.id));
+        this.students = this.students.filter(student => !idsToRemove.has(student.id));
     }
 
 
@@ -152,7 +153,7 @@ alice.addGrades(
     { subject: math, value: 83 },
     { subject: eng, value: 89 }
 );
-alice.removeGrade(80);
+alice.removeGrade(math);
 alice.logAllGrades();
 
 const bob = new Student("Bob"); 
@@ -160,7 +161,7 @@ bob.addGrade(math, 55);
 bob.addGrade(eng, 60);
 bob.addGrade(phy ,55);
 bob.addGrade(sci, 63 )
-bob.removeGrade(63)
+bob.removeGrade(sci)
 bob.logAllGrades()
 
 typescript101.addStudent(alice);
