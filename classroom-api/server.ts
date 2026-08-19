@@ -36,7 +36,7 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
     }
 }
 
-// CREATE STUDENT
+// CREATE STUDENT NOW REQUIRES PASSWORD
 app.post('/students', async (req: Request, res: Response) => {
     try {
         const { name, password } = req.body;
@@ -346,7 +346,6 @@ app.patch('/students/:id/grades/batch', authenticateToken, async (req: Request, 
     }
 });
 
-// DELETE MULTIPLE GRADES
 // DELETE MULTIPLE GRADES
 app.delete('/students/:id/grades', authenticateToken, async (req: Request, res: Response) => {
     try {
