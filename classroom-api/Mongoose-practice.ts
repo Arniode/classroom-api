@@ -13,6 +13,4 @@ const studentSchema = new mongoose.Schema({
 {versionKey: false
 })
 
-
-
 export const StudentModel = mongoose.model('Student',studentSchema)
