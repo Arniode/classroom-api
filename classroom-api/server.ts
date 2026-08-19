@@ -1,8 +1,8 @@
 import express, {type Express, type Request, type Response, type NextFunction } from 'express';
-import redisClient, {connectRedis} from './cache';
+import redisClient, { connectRedis } from './cache';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import {connectDB} from './Db';
+import { connectDB } from './Db';
 import { StudentModel } from './Mongoose-practice';
 await connectDB();
 await connectRedis();
